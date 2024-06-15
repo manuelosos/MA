@@ -37,11 +37,11 @@ function standardCNVMTest()
     
     num_nodes = 500
     num_states = 3
-    t_max = 2
+    t_max = 20
     n_traj = 20
     r = [0 2 2
         2 0 1
-        1 1 0]
+        1 2 0]
 
     rt = [0 0.1 0.1
           0.1 0 0.1
@@ -61,10 +61,8 @@ function standardCNVMTest()
    # u_ttraj, u_xtraj = unifyEnsembleTime(cvs, t_trajs,100, t_max)
 
 
-    
     plotEnsemble(cvs, t_trajs, t_max)
 
-    
 end
 
 

@@ -1,3 +1,5 @@
+
+
 module Models
 
 
@@ -240,6 +242,7 @@ function plotEnsemble(
     
 end
 
+
 """
 Unifies the time series of several individual trajectories.
 Assumes every time series starts at 0.
@@ -286,9 +289,10 @@ function unifyEnsembleTime(ensemble_cv, ensemble_time, n_new_time, t_max )
     
         end
     end
-    
+
     return time_series, new_traj
 end
+
 
 
 function computeMeanVariance(cv_traj)
