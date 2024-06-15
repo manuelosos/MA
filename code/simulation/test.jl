@@ -6,10 +6,10 @@ using LinearAlgebra
 using Plots
 
 
-includet("models.jl")
+includet("DynamicOnNetworkSimulation.jl")
 
 
-using .Models
+using .DynamicOnNetworkSimulation
 
 function simulateSIRS(r_si, rt_ir, rt_rs, network)
 
@@ -37,7 +37,7 @@ function standardCNVMTest()
     
     num_nodes = 500
     num_states = 3
-    t_max = 20
+    t_max = 2
     n_traj = 20
     r = [0 2 2
         2 0 1
