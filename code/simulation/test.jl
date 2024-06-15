@@ -5,9 +5,6 @@ using LinearAlgebra
 using Plots
 
 
-#include("models.jl")
-#using .Models
-
 
 struct CNVM
     num_states::Integer
@@ -169,9 +166,7 @@ function sampleFromAlias(table_prob::Vector{Float64}, table_alias::Vector{Intege
 
     x = rand()
     idx = trunc(Int, x * length(table_prob))
-
     y = length(table_prob) * x - idx
-
     if y < table_prob[idx+1]
         return idx+1
     end
@@ -230,6 +225,9 @@ function simulateSIRS(r_si, rt_ir, rt_rs, network)
 end
 
 
+
+
+
 function plotEnsemble(ensemble_cv, ensemble_time, n_points, t_max)
     
     n_traj = size(ensemble_cv)[1]
@@ -238,13 +236,21 @@ function plotEnsemble(ensemble_cv, ensemble_time, n_points, t_max)
     
     t_traj, cv_traj = unifyEnsembleTime(ensemble_cv, ensemble_time, n_points, t_max)
 
-    plt = plot()
+    mean, variance = computeMeanVariance(cv_traj)
 
-    for i = 1:n_traj
-        plot!( t_traj, cv_traj[:,1,i])
+    for j = 1:n_states
+        plt = plot(title="State $j", )
+        for i = 1:n_traj
+            plot!( t_traj, cv_traj[:,j,i], color="light gray")
+        end
+        plot!(t_traj, mean[:,j], color="red", legend=false)
+        plot!(t_traj, mean[:,j] + variance[:,j], color="orange")
+        plot!(t_traj, mean[:,j] - variance[:,j], color="orange")
+        display(plt)    
+    
     end
 
-    display(plt)
+    
 end
 
 
@@ -257,10 +263,8 @@ function unifyEnsembleTime(ensemble_cv, ensemble_time, n_points, t_max )
     new_traj = zeros(UInt64, (length(time_points), num_states, n_traj))
     
     for i = 1:n_traj
-        
         for j = 1:num_states
 
-            
             old_indice = 1
             new_index =1
           
@@ -271,7 +275,6 @@ function unifyEnsembleTime(ensemble_cv, ensemble_time, n_points, t_max )
                     new_traj[new_index,j,i] = ensemble_cv[i][old_indice,j]
                     new_index += 1
 
-                    
                     while new_index < size(new_traj)[1] && ensemble_time[i][old_indice] >= time_points[new_index] 
                         new_traj[new_index, j, i] = ensemble_cv[i][old_indice, j]
                         new_index += 1 
@@ -294,19 +297,28 @@ end
 
 function computeMeanVariance(cv_traj)
 
-
     n_traj = size(cv_traj)[3]
     n_states = size(cv_traj)[2]
     n_points = size(cv_traj)[1]
     mean = zeros(Float64,(n_points, n_states))
-    variance = similar(mean)
-    
+    variance = zeros(Float64,(n_points, n_states))
+
     for i = 1:n_traj
         for j = 1:n_states
-        mean .+= cv_traj[:,j,i]
+        mean[:,j] .+= cv_traj[:,j,i]
         end
     end
-    mean ./= n_states
+    mean ./= n_traj
+
+    for i = 1:n_traj
+        for j = 1:n_states
+            variance[:,j] .+= (mean[:,j] .- cv_traj[:,j,i]).^2
+
+        end
+    end
+
+    variance ./= n_traj
+    variance = sqrt.(variance)
 
     return mean, variance
 end 
@@ -314,9 +326,12 @@ end
 
 function standardCNVMTest()
     
+    
+    num_nodes = 500
     num_states = 3
     t_max = 2
-    r = [0 2 1
+    n_traj = 10
+    r = [0 2 2
         2 0 1
         1 1 0]
 
@@ -324,24 +339,19 @@ function standardCNVMTest()
           0.1 0 0.1
           0.1 0.1 0]
 
-    num_nodes = 400
+    
     g = barabasi_albert(num_nodes, 2, 2)
 
     model = CNVM(num_states, r, rt, g)
 
     x_init = rand(1: num_states, num_nodes)
 
-    x_trajs, t_trajs = simulateEnsembleSSA(model, t_max, x_init, 3)
+    x_trajs, t_trajs = simulateEnsembleSSA(model, t_max, x_init, n_traj)
     
-
-
     cvs = computeCvFromTrajectory(x_trajs, 3)
-    
-
     
     plotEnsemble(cvs, t_trajs, 100, t_max)
     
-
 end
 
 
