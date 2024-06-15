@@ -57,8 +57,13 @@ function standardCNVMTest()
     x_trajs, t_trajs = simulateEnsembleSSA(model, t_max, x_init, n_traj)
     
     cvs = computeCvFromTrajectory(x_trajs, 3)
+
+   # u_ttraj, u_xtraj = unifyEnsembleTime(cvs, t_trajs,100, t_max)
+
+
     
-    plotEnsemble(cvs, t_trajs, 100, t_max)
+    plotEnsemble(cvs, t_trajs, t_max)
+
     
 end
 

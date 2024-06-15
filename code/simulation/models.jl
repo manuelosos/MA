@@ -210,10 +210,14 @@ function computeCvFromTrajectory(trajectory::Vector{Vector}, num_states)
 end
 
 
-function plotEnsemble(ensemble_cv, ensemble_time, n_points, t_max)
+function plotEnsemble(
+    ensemble_cv,
+    ensemble_time,
+    t_max,
+    n_points=maximum([size(ensemble_cv[1])[1]])
+)
     
     n_traj = size(ensemble_cv)[1]
-    n_points = maximum([size(ensemble_cv[1])[1]])
     n_states = size(ensemble_cv[1])[2]
     
     t_traj, cv_traj = unifyEnsembleTime(ensemble_cv, ensemble_time, n_points, t_max)
@@ -225,6 +229,7 @@ function plotEnsemble(ensemble_cv, ensemble_time, n_points, t_max)
         for i = 1:n_traj
             plot!( t_traj, cv_traj[:,j,i], color="light gray")
         end
+
         plot!(t_traj, mean[:,j], color="red", legend=false)
         plot!(t_traj, mean[:,j] + variance[:,j], color="orange")
         plot!(t_traj, mean[:,j] - variance[:,j], color="orange")
@@ -237,21 +242,21 @@ end
 
 """
 Unifies the time series of several individual trajectories.
+Assumes every time series starts at 0.
 The trajectories will be sampled at the new time points.
 The number of points of the unified series is equal to the maximum of time points over all passed series.
 The unified points will have equidistant spacing.
 At every new time point every trajectory will be sampled. 
 For this the first value to the left is used. 
-In case of trajectories computed by the Gillespie algorithm this does not change the statistical correctness. 
 """
-function unifyEnsembleTime(ensemble_cv, ensemble_time, n_points, t_max )
+function unifyEnsembleTime(ensemble_cv, ensemble_time, n_new_time, t_max )
 
     n_traj = length(ensemble_cv)
     n_states = size(ensemble_cv[1])[2]
     
-    time_series = [i/n_points*t_max for i=0:n_points-1]
+    time_series = [i/n_new_time*t_max for i=0:n_new_time-1]
 
-    new_traj = zeros(UInt64, (n_points, n_states, n_traj))    
+    new_traj = zeros(UInt64, (n_new_time, n_states, n_traj))    
 
     for i = 1:n_traj
         for j = 1:n_states
@@ -263,25 +268,26 @@ function unifyEnsembleTime(ensemble_cv, ensemble_time, n_points, t_max )
 
             n_old_time = size(ensemble_cv[i])[1]
 
-            while new_index < n_points && old_index < n_old_time
+            while new_index < n_new_time && old_index < n_old_time-1
 
-                if ensemble_time[i][old_index] >= time_series[new_index]
+                if time_series[new_index] <=  ensemble_time[i][old_index+1] 
                     new_traj[new_index, j, i] = ensemble_cv[i][old_index, j]
                     new_index += 1
                 else
                     old_index += 1
                 end
+
             end 
 
-            while new_index <= n_points
-                new_traj[new_index,j,i] = ensemble_cv[i][old_index,j]
+            while new_index <= n_new_time
+                new_traj[new_index,j,i] = ensemble_cv[i][n_old_time,j]
                 new_index += 1
             end 
     
         end
     end
+    
     return time_series, new_traj
-        
 end
 
 
