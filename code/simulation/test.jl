@@ -360,7 +360,7 @@ function test()
 
     standardCNVMTest()
     #x_traj, t_traj, cv = simulateSIRS(1, 0.1, 0.4, barabasi_albert(500, 2, 2))
-
+#sdfsdf
     
 
     #plot(t_traj, cv)
