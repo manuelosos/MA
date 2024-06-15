@@ -1,0 +1,191 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{biblatex}
+
+\usepackage{hyperref} %should always be last because latex is dumb
+
+\addbibresource{sources.bib} 
+
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\fatx}{\boldsymbol{x}}
+
+\title{MA}
+\author{Manuel Urban}
+\date{March 2024}
+
+\begin{document}
+
+\maketitle
+
+\section{Notes on stochastic differential equations}
+
+\subsection{The Itô Integral}
+
+\begin{definition}
+
+ $\mathcal{V}$ set of functions for which the Itô Integral will be defined. \\
+ $\mathcal{V} = \mathcal{V}(S,T)$ set of functions of the form
+\begin{equation}
+    f(t,\omega): [0, \infty) \times \Omega \to \mathbb{R}
+\end{equation}
+such that
+\begin{itemize}
+    \item 
+        $(t,\omega) \to  f(t,\omega)$ is $\mathcal{B} \times \mathcal{F}$ measurable, where $\mathcal{B}$ denotes the Borel-$\sigma$-algebra on $[0,\infty)$;
+    \item
+        $f(t,\omega)$ is $\mathcal{F}_t$ adapted;
+    \item
+        $E\left[ \int^T_S f(t,\omega)^2dt\right] < \infty$, i.e. the expected $L_2$ norm of the function is finite.
+\end{itemize}
+
+\end{definition}
+
+\begin{lemma}[Itô isometry]
+    If $\phi(t,\omega)$ is bounded and elementary then
+    \begin{equation}
+        E \left[ \left( \int_S^T \phi(t,\omega)dB_t(\omega) \right)^2 \right]
+        =
+        E\left[ \int_S^T \phi(t,\omega)^2dt \right]
+    \end{equation}
+\end{lemma}
+
+\begin{definition}
+    Let $\mathcal{W}_\mathcal{H}(S,T)$ denote the class of processes $f(t,\omega) \in \textbf{R}$ satisfying the following properties 
+    \begin{itemize}
+        \item 
+            $(t,\omega) \to  f(t,\omega)$ is $\mathcal{B} \times \mathcal{F}$ measurable, where $\mathcal{B}$ denotes the Borel-$\sigma$-algebra on $[0,\infty)$;
+        \item 
+            There exists an increasing family of $\sigma-$algebras $\mathcal{H}_t; t\geq0$ such that
+            \begin{itemize}
+                \item $B_t$ is a martingale with respect to $\mathcal{H}_t$ and
+                \item $f_t$ is $\mathcal{H}_t$-adapted
+            \end{itemize}
+        \item   
+            $P\left[ \int_S^T f(s,\omega)^2ds<\infty \right] = 1$
+    \end{itemize}
+\end{definition}
+
+\begin{definition}[1-dimensional Itô process]
+    $B_t$ 1-dim Brownian motion on $(\Omega, \mathcal{F},P)$. An Itô process is a stochastic process $X_t$ on $(\Omega, \mathcal{F},P)$ of the form
+    \begin{equation}
+        X_t = X_0 + \int_0^t u(s,\omega) ds + \int_0^t v(s,\omega)dB_s
+    \end{equation}
+    where $v\in\mathcal{W}_\mathcal{H}$, so that 
+    \begin{equation}
+        P\left[ \int_0^tv(s,\omega)^2 ds < \infty \ \forall t\geq 0 \right] = 1.
+    \end{equation}
+    \begin{equation}
+        P\left[ v(\cdot, \omega) \in L_2(\mathbb{R}^+) \ \right] =1
+    \end{equation}
+    Also assume that $u$ is $\mathcal{H}_t$ adapted and 
+    \begin{equation}
+        P\left[\int_0^t|u(s,\omega)|ds <\infty \ \forall t \geq 0  \right] = 1
+    \end{equation}
+    \begin{equation}
+        P\left[ v(\cdot, \omega) \in L_1(\mathbb{R}^+) \ \right] =1
+    \end{equation}
+    Such process can be written in the short differential form
+    \begin{equation}
+        dX_t = udt + vdB_t.
+    \end{equation}
+\end{definition}
+
+Do these Processes map into $L_1/L_2$ ?
+
+\begin{theorem}[1-dim Itô formula]
+    Let $X_t$ be an Itô process given by
+    \begin{equation}
+        dX_t =udt+vdB_t.
+    \end{equation}
+    Let $g(t,x) \in C^2([0,\infty[ \times \mathbb{R})$. Then 
+    \begin{equation}
+        Y_t = g(t,X_t)
+    \end{equation}
+    is again an Itô process, and
+    \begin{equation}
+        dY_t=\frac{\partial  g}{\partial t}(t,X_t)d_t + \frac{\partial g}{\partial x}(t,X_t)dX_t + \frac{1}{2}\frac{\partial ^2 g}{\partial x^2}.(t,X_t)\cdot(dX_t)^2
+    \end{equation}
+    Following rules hold
+    \begin{gather}
+        (dX_t)^2 = (dX_t) \cdot (dX_t) \\
+        dt\cdot dt = dt \cdot dB_t = dB_t \cdot dt = 0 \\
+        dB_t \cdot dB_t =dt
+    \end{gather}
+\end{theorem}
+
+
+\begin{theorem}[Integration by parts]
+    Suppose $f(s,\omega)$ continuous and of bounded variation with respect to $s\in[0,t]$ for a.a. $\omega$ Then
+    \begin{equation}
+        \int_0^tf(s)dB_s=f(t)B_t-\int_0^t B_s df_s .
+    \end{equation}
+\end{theorem}
+
+
+
+
+
+
+\section{Notes on mean field equation}
+
+\subsection{Theory from Large Pop Limits}
+
+From \cite{Luecke2022}
+
+\subsubsection{Notation and Introduction}
+
+Simple undirected graph $G=(V,E)$ with $|V| =N \in \N$.
+W.l.o.g $V=[N]$ \\
+Each node $i\in [N]$ has one of $M\in\N$ discrete states, i.e., $x_i \in [M]$ \\
+Complete system state $x=(x_1,\dots ,x_N) \in [M]^N$ \\
+
+Node $i$ changes state state over time due to a continuous time Markov chain with transition rate matrix
+$Q_i^G(x)$, $Q_i^G:[M]^N \to \R^{M\times M}$\\
+The $(m,n)-th$ entry specifies $(Q_i^G(x))_{m,n} \geq 0$ at which rate node $i$ transitions from state $m$ to state $n$\\
+The stochastic process describing the state of node $i$ at time $t$ is denoted as $\fatx_i (t)$ and the full process as $\fatx (t) = (\fatx_1(t),\dots,\fatx_N(t))$
+
+
+
+
+\subsection{Complete Network}
+
+From \cite{Niemann2021} Higher order approximation by a stochastic differential equation called the chemical Langevin equation
+
+Until now not correct.
+\begin{equation}
+    dc_t = \sum_{(m,k)\to m} \tilde\alpha_{(m,k) \to n} (c(t)) v_{(m,k)\to n} dt + \sum_{(m,k)\to m} \frac{1}{\sqrt{N}}\sqrt{\tilde\alpha_{(m,k) \to n} (c(t))} dB_t v_{(m,k)\to n}
+\end{equation}
+
+\subsection{Erdős-Rényi Graph}
+
+$C:[M]^N \to \mathbb{R}^{MK}$ measures the shares of each extended state and is defined by,
+\begin{equation}
+    C(x) = \left(  C_{(m,k)}(x) \right)_{m\in[M],k\in[K]}.
+\end{equation}
+
+\begin{theorem}{Erdős-Rènyi MFE}
+
+The MFE satisfies following ODE
+    \begin{equation}
+        \frac{d}{dt}c(t) = \sum_{m\neq n} c_m(t) (r_{m,n} c_n(t) + \tilde{r}_{m,n})(e_n - e_m)
+    \end{equation}
+
+\end{theorem}
+
+
+\subsection{The Problem at Hand}
+
+
+
+
+\printbibliography
+
+\end{document}
