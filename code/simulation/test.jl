@@ -62,6 +62,7 @@ function standardCNVMTest()
 
 
     plotEnsemble(cvs, t_trajs, t_max)
+    print("done")
 
 end
 
