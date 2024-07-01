@@ -8,7 +8,7 @@ using Plots
 
 #includet("Gillespie.jl")
 #includet("SDE.jl")
-includet("NetworkSimulation.jl")
+includet("DynamicsOnNetworkSimulation.jl")
 includet("Statistics.jl")
 includet("LangevinEquations.jl")
 
@@ -29,11 +29,11 @@ function simulateSIRS(r_si, rt_ir, rt_rs, network)
     model = CNVM(num_states, r, rt, network)
 
     x_init = rand(1: num_states, nv(network))
-    x_traj, t_traj = gillespie(model, 5, x_init)
+    t, x_traj = gillespie(model, 5, x_init)
 
     cv = computeCvFromTrajectory(x_traj, num_states)
 
-    return t_traj, x_traj, cv
+    return t, x_traj, cv
 end
 
 

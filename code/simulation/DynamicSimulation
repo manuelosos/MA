@@ -1,3 +1,4 @@
+
 module DynamicsOnNetworkSimulation
 
 include("Gillespie.jl")
@@ -8,10 +9,13 @@ using LinearAlgebra
 using Plots
 using Distributions
 
+
+
 export CNVM
 export gillespie, ensembleGillespie
 export computeCvFromTrajectory, unifyEnsembleTime
 export eulerMaruyama, ensembleEulerMaruyama
+
 
 struct CNVM
     num_states::Integer
@@ -97,6 +101,7 @@ end
 
 function computeCvFromTrajectory(trajectory::Vector{Vector}, num_states)
 
+
     n = length(trajectory)
 
     cvs = Array{AbstractMatrix}(undef, n)
@@ -119,17 +124,15 @@ At every new time point every trajectory will be sampled.
 For this the first value to the left is used. 
 """
 function unifyEnsembleTime(
-    ensemble_cv,
     ensemble_time,
-    t_max,
+    ensemble_traj,
     new_timesteps::Vector
 )
 
-    n_traj = length(ensemble_cv)
-    n_states = size(ensemble_cv[1])[2]
+    n_traj = length(ensemble_traj)
+    n_states = size(ensemble_traj[1])[2]
 
-    time_series = [i / n_new_time * t_max for i = 0:n_new_time-1]
-
+    
     n_new_time = length(new_timesteps)
 
     new_traj = zeros(UInt64, (n_new_time, n_states, n_traj))
@@ -142,12 +145,12 @@ function unifyEnsembleTime(
             # index for the new unified trajectory
             new_index = 1
 
-            n_old_time = size(ensemble_cv[i])[1]
+            n_old_time = size(ensemble_traj[i])[1]
 
             while new_index < n_new_time && old_index < n_old_time - 1
 
-                if time_series[new_index] <= ensemble_time[i][old_index+1]
-                    new_traj[new_index, j, i] = ensemble_cv[i][old_index, j]
+                if new_timesteps[new_index] <= ensemble_time[i][old_index+1]
+                    new_traj[new_index, j, i] = ensemble_traj[i][old_index, j]
                     new_index += 1
                 else
                     old_index += 1
@@ -156,14 +159,27 @@ function unifyEnsembleTime(
             end
 
             while new_index <= n_new_time
-                new_traj[new_index, j, i] = ensemble_cv[i][n_old_time, j]
+                new_traj[new_index, j, i] = ensemble_traj[i][n_old_time, j]
                 new_index += 1
             end
 
         end
     end
 
-    return time_series, new_traj
+    return new_timesteps, new_traj
+end
+
+
+function unifyEnsembleTime(
+    ensemble_time,
+    ensemble_traj,
+    t_max,
+    n_new_timesteps
+)
+    new_timesteps = [i / n_new_timesteps * t_max for i = 0:n_new_timesteps-1]
+
+    unifyEnsembleTime(ensemble_time, ensemble_traj, new_timesteps)
+
 end
 
 
@@ -208,6 +224,15 @@ function eulerMaruyama(drift, diffusion, dim, rand_dim, x0, timesteps::Vector)
 
     end
     return timesteps, traj
+end
+
+
+function eulerMaruyama(drift, diffusion, dim, rand_dim, x0, t0, tmax, n_timesteps)
+
+    timesteps = [t0 + i * (tmax - t0) / n_timesteps for i = 0:n_timesteps-1]
+
+    return timesteps, eulerMaruyama(drift, diffusion, dim, rand_dim, x0, time)
+
 end
 
 

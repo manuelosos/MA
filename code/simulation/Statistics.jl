@@ -27,11 +27,6 @@ function computeMeanVariance(traj_list)
 end 
 
 
-function computeMeanVarianceEnsembleDifference()
-
-end
-
-
 function plotEnsemble(
     ensemble_traj,
     ensemble_time,
