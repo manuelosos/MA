@@ -1,8 +1,5 @@
 
-
-
-
-function simulateSSA(x_init::Vector,
+function gillespie(x_init::Vector,
                   t_max,
                   num_states,
                   neighbor_list,
@@ -54,7 +51,7 @@ function simulateSSA(x_init::Vector,
 
     end
 
-    return x_traj, t_traj
+    return t_traj, x_traj
 end
 
 
