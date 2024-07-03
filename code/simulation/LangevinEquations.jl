@@ -7,8 +7,6 @@ using LinearAlgebra
 using Plots
 
 
-includet("DynamicsOnNetworkSimulation.jl")
-includet("Statistics.jl")
 
 using .DynamicsOnNetworkSimulation
 

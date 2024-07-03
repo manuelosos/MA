@@ -72,7 +72,6 @@ function ornsteinuhlenbeck(equilibrium, stiffness, diffusion, initial)
     μ = equilibrium
     θ = stiffness
     σ = diffusion
-    a = initial
 
     a(x) = θ*(μ' .- x)
 

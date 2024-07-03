@@ -13,7 +13,7 @@ using Distributions
 
 export CNVM
 export gillespie, ensembleGillespie
-export computeCvFromTrajectory, unifyEnsembleTime
+export computeCvFromTrajectory, computeCvFromTrajectories, unifyEnsembleTime
 export eulerMaruyama, ensembleEulerMaruyama
 
 
@@ -58,13 +58,14 @@ function CNVM(num_states::Integer, r::Matrix, rt::Matrix, network::SimpleGraph)
 end
 
 
-function ensembleGillespie(params::CNVM, t_max, x_init, n)
+function ensembleGillespie(params::CNVM, t_max, x_init, n_runs)
 
-    x_traj_list = Array{Vector}(undef, n)
-    t_traj_list = Array{Vector}(undef, n)
+    x_traj_list = Array{Vector}(undef, n_runs)
+    t_traj_list = Array{Vector}(undef, n_runs)
 
-    Threads.@threads for i = 1:n
-        x_traj_list[i], t_traj_list[i] = gillespie(params, t_max, copy(x_init))
+    Threads.@threads for i = 1:n_runs
+        t_traj_list[i], x_traj_list[i] = gillespie(params, t_max, copy(x_init))
+        
     end
     return t_traj_list, x_traj_list
 end
@@ -87,9 +88,10 @@ function gillespie(params::CNVM, t_max, x_init)
 end
 
 
-function computeCvFromTrajectory(trajectory::Vector{Vector{Int64}}, num_states)
+function computeCvFromTrajectory(trajectory, num_states)
 
     cv = zeros(Int64, (size(trajectory)[1], num_states))
+
     for i in 1:size(trajectory)[1]
         for state in trajectory[i]
             cv[i, state] += 1
@@ -99,8 +101,7 @@ function computeCvFromTrajectory(trajectory::Vector{Vector{Int64}}, num_states)
 end
 
 
-function computeCvFromTrajectory(trajectory::Vector{Vector}, num_states)
-
+function computeCvFromTrajectories(trajectory, num_states)
 
     n = length(trajectory)
 

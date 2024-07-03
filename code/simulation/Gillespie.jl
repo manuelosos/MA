@@ -1,34 +1,74 @@
 
 function gillespie(x_init::Vector,
-                  t_max,
-                  num_states,
-                  neighbor_list,
-                  r_imit,
-                  r_noise,
-                  prob_imit,
-                  prob_noise,
-                  degrees  
-                    )
+    t_max,
+    num_states,
+    neighbor_list,
+    r_imit,
+    r_noise,
+    prob_imit,
+    prob_noise,
+    degrees
+)
 
     num_nodes = length(degrees)
 
     # Setting up exponential RV X with E[X] = event rate
-    next_event_rate = 1 / (r_imit * sum(degrees)+ r_noise * num_nodes)
+    next_event_rate = 1 / (r_imit * sum(degrees) + r_noise * num_nodes)
     event_distance_distribution = Exponential(next_event_rate)
 
     noise_probability = r_noise * num_nodes * next_event_rate
-    
+
     prob_table, alias_table = buildAliasTable(degrees)
+    if num_states > 256
+        print("Too many states")
+    else
+        # Forcing trajectory to be of type UInt8 to save space and accelerate computation
+        x_init_local = copy(x_init)
+        x_traj = Vector{UInt8}[convert(Vector{UInt8}, x_init_local)]
+    end
 
-    t=0
-    x_traj = [copy(x_init)]
-    t_traj = [0.]
+    t = 0
+    t_traj = [0.0]
 
-    x = x_init
+    _gillespieMainLoop!(
+        t_traj,
+        x_traj,
+        t_max,
+        num_states,
+        num_nodes,
+        neighbor_list,
+        event_distance_distribution,
+        noise_probability,
+        prob_imit,
+        prob_noise,
+        prob_table,
+        alias_table
+        )
+
+end
+
+
+function _gillespieMainLoop!(
+    t_traj,
+    x_traj,
+    t_max,
+    num_states,
+    num_nodes, 
+    neighbor_list,
+    event_distance_distribution,
+    noise_probability,
+    prob_imit,
+    prob_noise,
+    prob_table,
+    alias_table
+    )
+
+    x = copy(x_traj[1])
+    t = 0
 
     while t < t_max
         t += rand(event_distance_distribution)
-        noise = rand() < noise_probability ? true : false 
+        noise = rand() < noise_probability ? true : false
 
         if noise
             node = rand(1:num_nodes)
@@ -50,25 +90,24 @@ function gillespie(x_init::Vector,
         push!(t_traj, t)
 
     end
-
     return t_traj, x_traj
 end
 
 
-function buildAliasTable(weights)  
+function buildAliasTable(weights)
     # Algorithm from Kronmal and Peterson; see alias method for more information 
     table_prob = weights / sum(weights) * length(weights)
     table_alias = ones(Integer, length(weights))
 
-    small_ids = [i for i=1:length(table_prob) if table_prob[i] < 1]
-    large_ids = [i for i=1:length(table_prob) if table_prob[i] >= 1]
+    small_ids = [i for i = 1:length(table_prob) if table_prob[i] < 1]
+    large_ids = [i for i = 1:length(table_prob) if table_prob[i] >= 1]
 
     while length(small_ids) > 0 && length(large_ids) > 0
         small_id = pop!(small_ids)
         large_id = pop!(large_ids)
 
         table_alias[small_id] = large_id
-        table_prob[large_id] = table_prob[large_id] + table_prob[small_id] -1
+        table_prob[large_id] = table_prob[large_id] + table_prob[small_id] - 1
 
         if table_prob[large_id] < 1
             push!(small_ids, large_id)
@@ -90,7 +129,7 @@ function sampleFromAlias(table_prob::Vector{Float64}, table_alias::Vector{Intege
     idx = trunc(Int, x * length(table_prob))
     y = length(table_prob) * x - idx
     if y < table_prob[idx+1]
-        return idx+1
+        return idx + 1
     end
 
     return table_alias[idx+1]
