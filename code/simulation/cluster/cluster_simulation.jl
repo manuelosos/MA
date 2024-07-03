@@ -1,0 +1,3 @@
+include("../Simulationtest.jl")
+
+standardCNVMTest()

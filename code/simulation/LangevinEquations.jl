@@ -15,17 +15,16 @@ function meanFieldComplete(x, R, Rt)
 
     res = zeros(size(x))
 
-    for n in 1:size(R)[1]
-        for m in 1:size(R)[1]
+    for n = 1:size(R)[1]
+        for m = 1:size(R)[1]
             if m == n 
                 continue
             end
             tmp = x[m]*(R[m,n]* x[n] + Rt[m,n])
-
             res[n] += tmp
             res[m] -= tmp
         end
-    end
+    end 
 
     return res
 end
@@ -44,13 +43,12 @@ function diffusionComplete(x, R, Rt, N)
                 continue
             end
             tmp = x[j]* (R[j,i] * x[i] + Rt[j,i])
-            if tmp < 0
-                tmp = 0 # Clip negatve values to zero
-            else
-                tmp = sqrt(tmp/N) 
-            end
-            diffusion[j,k] = -tmp
-            diffusion[i,k] = tmp
+            # Values below zero are clipped to zero
+
+            tmp = sqrt(tmp/N) 
+            diffusion[j,k] -= tmp
+            diffusion[i,k] += tmp
+
             k += 1
             
         end 

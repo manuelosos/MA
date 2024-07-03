@@ -216,12 +216,13 @@ function eulerMaruyama(drift, diffusion, dim, rand_dim, x0, timesteps::Vector)
     for i = 1:n_steps-1
 
         Δt = timesteps[i+1] - timesteps[i]
-
+        
         driftterm = drift(traj[i, :]) * Δt
 
         diffuterm = diffusion(traj[i, :]) * (randinc[i+1, :, :] - randinc[i, :, :])
 
         traj[i+1, :] = traj[i, :] + driftterm + diffuterm
+        traj[i+1,:] = clamp.(traj[i+1, :], 0, 1)
 
     end
     return timesteps, traj

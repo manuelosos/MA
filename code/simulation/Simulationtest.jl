@@ -59,16 +59,17 @@ function standardCNVMTest()
 
     # CNVM Setup
     num_nodes = 500
-    R = [0 1 2
-        1 0 1
-        1 1 0]
-    Rt = [0 0.05 0.05
-          0.05 0 0.05
-          0.05 0.05 0]
+    R = [0 0.8 0.2
+        0.2 0 0.8
+        0.8 0.2 0]
+    Rt = [0 0.01 0.01
+          0.01 0 0.01
+          0.01 0.01 0]
+
 
     n_states = size(R)[1]
-    g = complete_graph(num_nodes)
-    #g = erdos_renyi(num_nodes, 0.01)
+    #g = complete_graph(num_nodes)
+    g = erdos_renyi(num_nodes, 0.03)
     
 
     model = CNVM(n_states, R, Rt, g)
@@ -79,10 +80,11 @@ function standardCNVMTest()
     
     
     x_init_sde = computeSharesOfState(copy(x_init_gillespie), n_states)
+    x_init_sde = [0.2, 0.3, 0.5]
     t0 = 0
-    t_max = 5
-    n_time = 1000*t_max
-    n_runs = 1
+    t_max = 200
+    n_time = 10*t_max
+    n_runs = 5000
 
     # SDE
     
@@ -90,9 +92,10 @@ function standardCNVMTest()
     
     t_sde, x_sde = ensembleEulerMaruyama(
         x -> meanFieldComplete(x, R, Rt),
+        #x-> zeros((n_states,n_states^2-n_states)),
         x -> diffusionComplete(x, R, Rt, num_nodes),
         n_states,
-        noise_shape,
+        noise_shape',
         x_init_sde,
         t0,
         t_max,
@@ -104,6 +107,7 @@ function standardCNVMTest()
     
     # Gillespie Simulation
 
+    
     t_gillespie, x_gillespie = ensembleGillespie(model, t_max, copy(x_init_gillespie), n_runs)
     println("Gillespie Simulation done")
 
@@ -118,17 +122,19 @@ function standardCNVMTest()
     #mean_sde, variance_sde = computeMeanVariance(x_sde)
     #mean_gillespie, variance_gillespie = computeMeanVariance(x_gillespie)
 
-    plotEnsemble(t_gillespie, x_gillespie, t_max, "Gillespie")
+    savestr = "plots/"
 
+    p1 = plotEnsemble(t_gillespie, x_gillespie, t_max, "Gillespie")
+    p2 = plotEnsemble(t_sde, x_sde, t_max, "SDE", 0)
 
-
-    plotEnsemble(t_sde, x_sde, t_max, "SDE")
+    savefig(p1,"$(savestr)plot_1.png" )
+    savefig(p2,"$(savestr)plot_2.png" )
     
     #mean_difference = abs.(mean_sde .- mean_gillespie)
     #variance_difference = abs.(variance_sde .- variance_gillespie)
 
 
-    plotEnsembleDifference(t_sde, x_sde, x_gillespie,"Difference", "SDE", "Gillespie" )
+    #plotEnsembleDifference(t_sde, x_sde, x_gillespie,"Difference", "SDE", "Gillespie" )
     return
 end
 
